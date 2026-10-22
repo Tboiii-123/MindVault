@@ -1,0 +1,50 @@
+# Production-shaped stack: uses the slim `runtime` image, no source mounts, no exposed DB.
+# Usage: IMAGE=ghcr.io/<you>/ainotes:<sha> docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+# DB, Redis and object storage should be managed services in real production; they are
+# containers here only so the file is self-contained.
+x-app: &app
+  image: ${IMAGE:?set IMAGE}
+  env_file: .env.prod
+  restart: unless-stopped
+  depends_on:
+    db: {condition: service_healthy}
+    redis: {condition: service_healthy}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: .env.prod
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  web:
+    <<: *app
+    environment: {RUN_MIGRATIONS: "1"}
+    ports: ["8000:8000"]   # put nginx / a load balancer / Caddy in front for TLS
+
+  worker:
+    <<: *app
+    command: celery -A config worker -l info -Q default,ai --concurrency=4
+    deploy: {replicas: 2}
+
+  beat:
+    <<: *app
+    command: celery -A config beat -l info
+
+volumes:
+  pgdata:
+  redisdata:

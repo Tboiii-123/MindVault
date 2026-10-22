@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{{ c.title }}</title>
+  <style>
+    :root { --bg:#fafaf9; --fg:#1c1917; --muted:#78716c; --card:#fff; --line:#e7e5e4; --accent:#4f46e5; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#14120f; --fg:#f5f5f4; --muted:#a8a29e; --card:#1c1917; --line:#292524; --accent:#a5b4fc; }
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, sans-serif; }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+    h1 { font-size: 1.8rem; margin: 0 0 4px; }
+    .by { color: var(--muted); margin-bottom: 24px; }
+    .summary { background: var(--card); border:1px solid var(--line); border-left:4px solid var(--accent);
+               border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; white-space: pre-wrap; }
+    article { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    time { color: var(--muted); font-size: .85rem; }
+    .content { white-space: pre-wrap; margin-top: 8px; }
+    audio { width: 100%; margin-top: 8px; }
+    .tag { display:inline-block; font-size:.75rem; color:var(--accent); margin-right:8px; }
+    footer { color: var(--muted); font-size: .8rem; text-align:center; margin-top: 32px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>{% if c.icon %}{{ c.icon }} {% endif %}{{ c.title }}</h1>
+  <div class="by">By {{ c.author }}</div>
+  {% if c.summary %}<div class="summary">{{ c.summary }}</div>{% endif %}
+
+  {% for e in c.entries %}
+    <article>
+      <time datetime="{{ e.created_at }}">{{ e.created_at|slice:":10" }}</time>
+      {% if e.kind == "voice" %}
+        <div>🎙️ Voice note</div>
+        {% if e.audio_url %}<audio controls preload="none" src="{{ e.audio_url }}"></audio>{% endif %}
+      {% endif %}
+      <div class="content">{{ e.content }}</div>
+      {% if e.tags %}<div>{% for t in e.tags %}<span class="tag">#{{ t }}</span>{% endfor %}</div>{% endif %}
+    </article>
+  {% empty %}
+    <p class="by">Nothing here yet.</p>
+  {% endfor %}
+  <footer>Shared with AI Notes</footer>
+</main>
+</body>
+</html>

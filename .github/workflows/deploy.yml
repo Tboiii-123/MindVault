@@ -1,0 +1,29 @@
+name: Deploy
+
+# Runs after CI succeeds on main. Replace the SSH step with your platform
+# (ECS, Fly.io, Kubernetes, Render...) - the image is already in GHCR.
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production        # add required reviewers for a manual approval gate
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /srv/ainotes
+            export IMAGE=ghcr.io/${{ github.repository }}:sha-${{ github.event.workflow_run.head_sha }}
+            docker compose -f docker-compose.prod.yml --env-file .env.prod pull
+            docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --remove-orphans
+            docker image prune -f
