@@ -94,7 +94,9 @@ def container_detail(request, pk):
     responses={202: EntrySerializer},
 )
 @api_view(["GET", "POST"])
-#Multi Parser  Used for multipart/form-data, commonly needed when the frontend uploads an audio file along with text fields.
+# Multi Parser  Used for multipart/form-data, commonly needed when the frontend uploads an audio file along with text fields.
+# FormParser Handles ordinary URL-encoded form submissions, such as fields sent as application/x-www-form-urlencoded
+# JsonParser Handles JSON request bodies, which are convenient for text-only entries.
 @parser_classes([MultiPartParser, FormParser, JSONParser])
 @throttle_classes(_UPLOAD_THROTTLES)
 def entry_list_create(request, container_id):

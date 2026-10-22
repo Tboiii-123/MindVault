@@ -25,14 +25,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
-    #Third Party Apps
-        "rest_framework",
+    # Third Party Apps
+    "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "drf_spectacular",
     "storages",
-    #Local Apps
-        "apps.common",
+    # Local Apps
+    "apps.common",
     "apps.users",
     "apps.containers",
     "apps.ai",
